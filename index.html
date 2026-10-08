@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#08111f" />
+  <title>Gale Manager — Gestão de Operações</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="app-shell">
+    <header class="topbar">
+      <div>
+        <div class="eyebrow">GALE MANAGER • V2</div>
+        <h1>Gestão de operações</h1>
+        <p class="subtitle">Gestão de Soros + controle de banca + histórico local.</p>
+      </div>
+      <div class="status-pill" id="riskPill"><span class="dot"></span><span id="riskLabel">Risco baixo</span></div>
+    </header>
+
+    <main class="container">
+      <section class="grid stats-grid">
+        <article class="card stat-card">
+          <div class="stat-label">Banca atual</div>
+          <div class="stat-value" id="bankrollValue">R$ 100,00</div>
+          <div class="stat-helper" id="bankrollDelta">Inicial: R$ 100,00</div>
+        </article>
+        <article class="card stat-card">
+          <div class="stat-label">Resultado do ciclo</div>
+          <div class="stat-value" id="cycleValue">R$ 0,00</div>
+          <div class="stat-helper" id="cycleStatus">Nenhuma operação registrada</div>
+        </article>
+        <article class="card stat-card">
+          <div class="stat-label">Taxa de acerto</div>
+          <div class="stat-value" id="winRateValue">0,0%</div>
+          <div class="stat-helper" id="winLossCount">0 WIN • 0 LOSS</div>
+        </article>
+        <article class="card stat-card">
+          <div class="stat-label">Sequência atual</div>
+          <div class="stat-value" id="streakValue">0</div>
+          <div class="stat-helper" id="streakText">Sem sequência de perdas</div>
+        </article>
+      </section>
+
+      <section class="grid main-grid">
+        <div class="stack">
+          <article class="card">
+            <div class="section-heading">
+              <div>
+                <h2>Configuração</h2>
+                <p>Os valores ficam salvos neste navegador.</p>
+              </div>
+              <button class="ghost-btn" id="resetBtn">Reiniciar sessão</button>
+            </div>
+
+            <div class="form-grid">
+              <label>
+                <span>Banca inicial</span>
+                <div class="input-wrap"><span>R$</span><input id="initialBankroll" type="number" min="1" step="0.01" /></div>
+              </label>
+              <label>
+                <span>Entrada inicial</span>
+                <div class="input-wrap"><span>R$</span><input id="initialStake" type="number" min="0.01" step="0.01" /></div>
+              </label>
+              <label>
+                <span>Payout</span>
+                <div class="input-wrap"><input id="payout" type="number" min="1" max="99.99" step="0.01" /><span>%</span></div>
+              </label>
+              <label>
+                <span>Níveis do Soros</span>
+                <select id="sorosLevels">
+                  <option value="5" selected>5 níveis</option>
+                </select>
+              </label>
+              <label>
+                <span>Stop-loss (R$)</span>
+                <div class="input-wrap"><span>R$</span><input id="stopLoss" type="number" min="0" step="0.01" /></div>
+              </label>
+              <label>
+                <span>Stop-win (R$)</span>
+                <div class="input-wrap"><span>R$</span><input id="stopWin" type="number" min="0" step="0.01" /></div>
+              </label>
+            </div>
+
+            <div class="notice">
+              <strong>Soros:</strong> em cada WIN, o lucro é somado à entrada para formar a próxima entrada. No LOSS, o ciclo volta ao nível 1. Após 5 WINs consecutivos, o ciclo é encerrado e reinicia em R$ 5,00. Isso não aumenta a chance de acerto da próxima operação.
+            </div>
+          </article>
+
+          <article class="card">
+            <div class="section-heading">
+              <div>
+                <h2>Próxima operação</h2>
+                <p>Registre apenas o resultado real da operação executada.</p>
+              </div>
+              <span class="badge" id="cycleBadge">Entrada</span>
+            </div>
+
+            <div class="next-operation">
+              <div class="next-highlight">
+                <div class="mini-label">PRÓXIMA ENTRADA</div>
+                <div class="next-value" id="nextStakeValue">R$ 5,00</div>
+                <div class="next-helper" id="nextStakeHelper">Soros 1/5 • entrada inicial</div>
+              </div>
+              <div class="operation-meta">
+                <div><span>Soros</span><strong id="nextLevel">1/5</strong></div>
+                <div><span>Lucro esperado</span><strong id="targetProfit">R$ 4,25</strong></div>
+                <div><span>Após WIN</span><strong id="afterWinValue">R$ 9,25</strong></div>
+              </div>
+            </div>
+
+            <div class="action-grid">
+              <button class="action-btn win" id="winBtn">✓ REGISTRAR WIN</button>
+              <button class="action-btn loss" id="lossBtn">✕ REGISTRAR LOSS</button>
+            </div>
+
+            <div class="risk-message" id="riskMessage">
+              Pronto para a entrada inicial.
+            </div>
+          </article>
+        </div>
+
+        <div class="stack">
+          <article class="card">
+            <div class="section-heading">
+              <div>
+                <h2>Ciclo atual</h2>
+                <p>Sequência atual do Soros.</p>
+              </div>
+            </div>
+            <div class="cycle-list" id="cycleList"></div>
+          </article>
+
+          <article class="card">
+            <div class="section-heading">
+              <div>
+                <h2>Projeção do Soros</h2>
+                <p>Entrada, lucro e próxima entrada em cada nível.</p>
+              </div>
+              <span class="badge">5 NÍVEIS</span>
+            </div>
+            <div class="soros-projection" id="sorosProjection"></div>
+          </article>
+
+          <article class="card">
+            <div class="section-heading">
+              <div>
+                <h2>Estatísticas</h2>
+                <p>Resumo da sessão.</p>
+              </div>
+            </div>
+            <div class="metrics">
+              <div><span>Total de operações</span><strong id="totalOps">0</strong></div>
+              <div><span>Lucro/prejuízo</span><strong id="sessionPnl">R$ 0,00</strong></div>
+              <div><span>Melhor sequência</span><strong id="bestWinStreak">0 WIN</strong></div>
+              <div><span>Maior sequência de losses</span><strong id="bestLossStreak">0 LOSS</strong></div>
+            </div>
+          </article>
+
+          <article class="card">
+            <div class="section-heading">
+              <div>
+                <h2>Histórico</h2>
+                <p>As últimas operações ficam armazenadas localmente.</p>
+              </div>
+              <button class="ghost-btn danger-text" id="clearHistoryBtn">Limpar histórico</button>
+            </div>
+            <div class="history-wrap">
+              <table>
+                <thead>
+                  <tr><th>Hora</th><th>Nível</th><th>Entrada</th><th>Resultado</th><th>P&L</th></tr>
+                </thead>
+                <tbody id="historyBody"></tbody>
+              </table>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <footer class="footer-note">
+        Ferramenta de cálculo e gestão. Não há garantia de lucro ou de recuperação de perdas. Use limites de risco e teste primeiro em ambiente de simulação.
+      </footer>
+    </main>
+  </div>
+
+  <div class="modal-backdrop hidden" id="stopModal">
+    <div class="modal">
+      <h3>Limite de risco atingido</h3>
+      <p id="stopModalText">A sessão foi bloqueada pelo limite configurado.</p>
+      <button class="primary-btn" id="closeStopModal">Entendi</button>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
